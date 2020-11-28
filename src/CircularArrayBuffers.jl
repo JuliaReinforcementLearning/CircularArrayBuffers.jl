@@ -17,6 +17,8 @@ end
 
 const CircularVectorBuffer{T} = CircularArrayBuffer{T, 1}
 
+CircularVectorBuffer{T}(n::Integer) where T = CircularArrayBuffer{T}(n)
+
 function CircularArrayBuffer{T}(d::Integer...) where {T}
     N = length(d)
     CircularArrayBuffer(Array{T}(undef, d...), 1, 0, N == 1 ? 1 : *(d[1:end-1]...))

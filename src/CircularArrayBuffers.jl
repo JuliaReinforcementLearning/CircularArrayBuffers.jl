@@ -41,13 +41,21 @@ Base.isempty(cb::CircularArrayBuffer) = cb.nframes == 0
 
 @inline function _buffer_index(cb::CircularArrayBuffer, i::Int)
     ind = (cb.first - 1) * cb.step_size + i
-    mod1(ind, length(cb.buffer))
+    if ind > length(cb.buffer)
+        ind - length(cb.buffer)
+    else
+        ind
+    end
 end
 
 @inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
     n = capacity(cb)
     idx = cb.first + i - 1
-    mod1(idx, n)
+    if idx > n
+        idx - n
+    else
+        idx
+    end
 end
 
 _buffer_frame(cb::CircularArrayBuffer, I::Vector{Int}) = map(i -> _buffer_frame(cb, i), I)

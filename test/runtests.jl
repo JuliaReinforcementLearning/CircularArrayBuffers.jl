@@ -126,4 +126,32 @@ using Test
         @test x == 7 * ones(2,2)
         @test b == reshape([c for x in 5:6 for c in x * A], 2, 2, 2)
     end
+
+    @testset "append!" begin
+        b = CircularArrayBuffer{Int}(2,3)
+        append!(b, zeros(2))
+        append!(b, 1:4)
+        @test b == [
+            0 1 3
+            0 2 4
+        ]
+
+        
+        b = CircularArrayBuffer{Int}(2,3)
+        for i in 1:5
+            push!(b, fill(i, 2))
+        end
+        empty!(b)
+        append!(b, 1:4)
+        @test b == [
+            1 3
+            2 4
+        ]
+
+        append!(b, 5:8)
+        @test b == [
+            3 5 7
+            4 6 8
+        ]
+    end
 end

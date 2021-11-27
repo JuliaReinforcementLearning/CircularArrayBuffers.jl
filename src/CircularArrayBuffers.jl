@@ -72,7 +72,11 @@ function Base.push!(cb::CircularArrayBuffer{T, N}, data) where {T,N}
         cb.nframes += 1
     end
     if N == 1
-        cb[cb.nframes] = data
+        if ndims(data) == 0
+            cb[cb.nframes] = data[]
+        else
+            cb[cb.nframes] = data
+        end
     else
         cb[ntuple(_ -> (:), N - 1)..., cb.nframes] .= data
     end

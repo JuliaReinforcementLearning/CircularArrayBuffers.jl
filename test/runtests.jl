@@ -4,6 +4,15 @@ using Test
 @testset "CircularArrayBuffers.jl" begin
     A = ones(2, 2)
     C = ones(Float32, 2, 2)
+
+    # https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl/issues/551
+    @testset "1D with 0d data" begin
+        b = CircularArrayBuffer{Int}(3)
+        push!(b, zeros(Int, ()))
+        @test length(b) == 1
+        @test b[1] == 0
+    end
+
     @testset "1D Int" begin
         b = CircularArrayBuffer{Int}(3)
 

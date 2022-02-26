@@ -72,16 +72,17 @@ using Test
         @test length(b) == 2
         @test b[[1, 2]] == [7, 8]
 
-        x = pop!(b)
-        @test x == 8
+        x = popfirst!(b)
+        @test x == 7
         @test length(b) == 1
-        @test b[1] == 7
+        @test b[1] == 8
 
         x = pop!(b)
-        @test x == 7
+        @test x == 8
         @test length(b) == 0
 
         @test_throws ArgumentError pop!(b)
+        @test_throws ArgumentError popfirst!(b)
     end
 
     @testset "2D Float64" begin
@@ -123,12 +124,12 @@ using Test
         @test b == reshape([c for x in 5:7 for c in x * A], 2, 2, 3)
 
         x = pop!(b)
-        @test x == 7 * ones(2,2)
+        @test x == 7 * ones(2, 2)
         @test b == reshape([c for x in 5:6 for c in x * A], 2, 2, 2)
     end
 
     @testset "append!" begin
-        b = CircularArrayBuffer{Int}(2,3)
+        b = CircularArrayBuffer{Int}(2, 3)
         append!(b, zeros(2))
         append!(b, 1:4)
         @test b == [
@@ -136,8 +137,8 @@ using Test
             0 2 4
         ]
 
-        
-        b = CircularArrayBuffer{Int}(2,3)
+
+        b = CircularArrayBuffer{Int}(2, 3)
         for i in 1:5
             push!(b, fill(i, 2))
         end

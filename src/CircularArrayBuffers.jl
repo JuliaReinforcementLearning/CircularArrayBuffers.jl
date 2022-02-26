@@ -15,9 +15,9 @@ mutable struct CircularArrayBuffer{T,N} <: AbstractArray{T,N}
     step_size::Int
 end
 
-const CircularVectorBuffer{T} = CircularArrayBuffer{T, 1}
+const CircularVectorBuffer{T} = CircularArrayBuffer{T,1}
 
-CircularVectorBuffer{T}(n::Integer) where T = CircularArrayBuffer{T}(n)
+CircularVectorBuffer{T}(n::Integer) where {T} = CircularArrayBuffer{T}(n)
 
 function CircularArrayBuffer{T}(d::Integer...) where {T}
     N = length(d)
@@ -65,7 +65,7 @@ function Base.empty!(cb::CircularArrayBuffer)
     cb
 end
 
-function Base.push!(cb::CircularArrayBuffer{T, N}, data) where {T,N}
+function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     if cb.nframes == capacity(cb)
         cb.first = (cb.first == capacity(cb) ? 1 : cb.first + 1)
     else
@@ -83,22 +83,22 @@ function Base.push!(cb::CircularArrayBuffer{T, N}, data) where {T,N}
     cb
 end
 
-function Base.append!(cb::CircularArrayBuffer{T, N}, data) where {T,N}
-    d, r = divrem(length(data) , cb.step_size)
+function Base.append!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
+    d, r = divrem(length(data), cb.step_size)
     @assert r == 0
     if length(data) >= length(cb.buffer)
         cb.nframes = capacity(cb)
         cb.first = 1
         cb.buffer[:] .= @view data[end-length(cb.buffer)+1:end]
     else
-        start_idx = (cb.first-1) * cb.step_size + length(cb) + 1
+        start_idx = (cb.first - 1) * cb.step_size + length(cb) + 1
         end_idx = start_idx + length(data) - 1
         if start_idx > length(cb.buffer)
             start_idx -= length(cb.buffer)
             end_idx -= length(cb.buffer)
         end
         if end_idx > length(cb.buffer)
-            n_first_part = length(cb.buffer)-start_idx+1
+            n_first_part = length(cb.buffer) - start_idx + 1
             n_second_part = length(data) - n_first_part
             cb.buffer[end-n_first_part+1:end] .= @view data[1:n_first_part]
             cb.buffer[1:n_second_part] .= @view data[end-n_second_part+1:end]
@@ -119,12 +119,26 @@ function Base.append!(cb::CircularArrayBuffer{T, N}, data) where {T,N}
     cb
 end
 
-function Base.pop!(cb::CircularArrayBuffer{T, N}) where {T,N}
+function Base.pop!(cb::CircularArrayBuffer{T,N}) where {T,N}
     if cb.nframes <= 0
         throw(ArgumentError("buffer must be non-empty"))
     else
-        res = @views cb[ntuple(_ -> (:), N - 1)..., cb.nframes]
+        res = @views cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)]
         cb.nframes -= 1
+        res
+    end
+end
+
+function Base.popfirst!(cb::CircularArrayBuffer{T,N}) where {T,N}
+    if cb.nframes <= 0
+        throw(ArgumentError("buffer must be non-empty"))
+    else
+        res = @views cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, 1)]
+        cb.nframes -= 1
+        cb.first += 1
+        if cb.first > capacity(cb)
+            cb.first = 1
+        end
         res
     end
 end

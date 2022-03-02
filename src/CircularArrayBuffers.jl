@@ -1,5 +1,7 @@
 module CircularArrayBuffers
 
+using Adapt
+
 export CircularArrayBuffer, CircularVectorBuffer, capacity, isfull
 
 """
@@ -8,14 +10,14 @@ export CircularArrayBuffer, CircularVectorBuffer, capacity, isfull
 `CircularArrayBuffer` uses a `N`-dimension `Array` of size `sz` to serve as a buffer for
 `N-1`-dimension `Array`s of the same size.
 """
-mutable struct CircularArrayBuffer{T,N} <: AbstractArray{T,N}
-    buffer::Array{T,N}
+mutable struct CircularArrayBuffer{T,N,S<:AbstractArray{T,N}} <: AbstractArray{T,N}
+    buffer::S
     first::Int
     nframes::Int
     step_size::Int
 end
 
-const CircularVectorBuffer{T} = CircularArrayBuffer{T,1}
+const CircularVectorBuffer{T,S} = CircularArrayBuffer{T,1,S}
 
 CircularVectorBuffer{T}(n::Integer) where {T} = CircularArrayBuffer{T}(n)
 
@@ -27,6 +29,9 @@ end
 function CircularArrayBuffer(A::AbstractArray{T,N}) where {T,N}
     CircularArrayBuffer(A, 1, size(A, N), N == 1 ? 1 : *(size(A)[1:end-1]...))
 end
+
+Adapt.adapt_structure(to, cb::CircularArrayBuffer) =
+    CircularArrayBuffer(adapt(to, cb.buffer), cb.first, cb.nframes, cb.step_size)
 
 Base.IndexStyle(::CircularArrayBuffer) = IndexLinear()
 

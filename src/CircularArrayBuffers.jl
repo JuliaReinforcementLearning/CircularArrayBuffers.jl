@@ -5,7 +5,7 @@ using Adapt
 export CircularArrayBuffer, CircularVectorBuffer, capacity, isfull
 
 """
-    CircularArrayBuffer{T}(sz::Integer...) -> CircularArrayBuffer{T, N}
+    CircularArrayBuffer{T}(sz::Integer...) -> CircularArrayBuffer{T, N, Array{T, N}}
 
 `CircularArrayBuffer` uses a `N`-dimension `Array` of size `sz` to serve as a buffer for
 `N-1`-dimension `Array`s of the same size.
@@ -33,12 +33,22 @@ end
 Adapt.adapt_structure(to, cb::CircularArrayBuffer) =
     CircularArrayBuffer(adapt(to, cb.buffer), cb.first, cb.nframes, cb.step_size)
 
+function Base.show(io::IO, ::MIME"text/plain", cb::CircularArrayBuffer{T}) where T
+    print(io, ndims(cb) == 1 ? "CircularVectorBuffer(" : "CircularArrayBuffer(")
+    Base.showarg(io, cb.buffer, false)
+    print(io, ") with eltype $T:\n")
+    Base.print_array(io, adapt(Array, cb))
+    return nothing
+end
+
 Base.IndexStyle(::CircularArrayBuffer) = IndexLinear()
 
 Base.size(cb::CircularArrayBuffer{T,N}, i::Integer) where {T,N} = i == N ? cb.nframes : size(cb.buffer, i)
 Base.size(cb::CircularArrayBuffer{T,N}) where {T,N} = ntuple(i -> size(cb, i), N)
 Base.getindex(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N} = getindex(cb.buffer, _buffer_index(cb, i))
+Base.getindex(cb::CircularArrayBuffer{T,N}, I...) where {T,N} = getindex(cb.buffer, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
 Base.setindex!(cb::CircularArrayBuffer{T,N}, v, i::Int) where {T,N} = setindex!(cb.buffer, v, _buffer_index(cb, i))
+Base.setindex!(cb::CircularArrayBuffer{T,N}, v, I...) where {T,N} = setindex!(cb.buffer, v, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
 
 capacity(cb::CircularArrayBuffer{T,N}) where {T,N} = size(cb.buffer, N)
 isfull(cb::CircularArrayBuffer) = cb.nframes == capacity(cb)
@@ -52,6 +62,7 @@ Base.isempty(cb::CircularArrayBuffer) = cb.nframes == 0
         ind
     end
 end
+@inline _buffer_index(cb::CircularArrayBuffer, I::AbstractVector{<:Integer}) = map(Base.Fix1(_buffer_index, cb), I)
 
 @inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
     n = capacity(cb)
@@ -63,7 +74,7 @@ end
     end
 end
 
-_buffer_frame(cb::CircularArrayBuffer, I::Vector{Int}) = map(i -> _buffer_frame(cb, i), I)
+_buffer_frame(cb::CircularArrayBuffer, I::AbstractVector{<:Integer}) = map(i -> _buffer_frame(cb, i), I)
 
 function Base.empty!(cb::CircularArrayBuffer)
     cb.nframes = 0
@@ -77,13 +88,14 @@ function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
         cb.nframes += 1
     end
     if N == 1
+        i = _buffer_frame(cb, cb.nframes)
         if ndims(data) == 0
-            cb[cb.nframes] = data[]
+            cb.buffer[i:i] .= data[]
         else
-            cb[cb.nframes] = data
+            cb.buffer[i:i] .= data
         end
     else
-        cb[ntuple(_ -> (:), N - 1)..., cb.nframes] .= data
+        cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
     end
     cb
 end

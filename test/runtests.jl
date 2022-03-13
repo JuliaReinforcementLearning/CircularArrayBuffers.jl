@@ -79,6 +79,10 @@ CUDA.allowscalar(false)
         @test size(b) == (3,)
         @test b[[1, 2, 3]] == [7, 8, 9]
 
+        # https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl/pull/600
+        @test b[[1 3; 2 3]] == [7 9; 8 9]
+        @test @view(b[[1 3; 2 3]]) == [7 9; 8 9]
+
         x = pop!(b)
         @test x == 9
         @test length(b) == 2

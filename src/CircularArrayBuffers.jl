@@ -33,7 +33,7 @@ end
 Adapt.adapt_structure(to, cb::CircularArrayBuffer) =
     CircularArrayBuffer(adapt(to, cb.buffer), cb.first, cb.nframes, cb.step_size)
 
-function Base.show(io::IO, ::MIME"text/plain", cb::CircularArrayBuffer{T}) where T
+function Base.show(io::IO, ::MIME"text/plain", cb::CircularArrayBuffer{T}) where {T}
     print(io, ndims(cb) == 1 ? "CircularVectorBuffer(" : "CircularArrayBuffer(")
     Base.showarg(io, cb.buffer, false)
     print(io, ") with eltype $T:\n")
@@ -77,7 +77,7 @@ end
     end
 end
 
-_buffer_frame(cb::CircularArrayBuffer, I::AbstractVector{<:Integer}) = map(i -> _buffer_frame(cb, i), I)
+_buffer_frame(cb::CircularArrayBuffer, I::AbstractArray{<:Integer}) = map(i -> _buffer_frame(cb, i), I)
 
 function Base.empty!(cb::CircularArrayBuffer)
     cb.nframes = 0

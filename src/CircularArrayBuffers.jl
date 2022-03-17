@@ -47,6 +47,25 @@ Base.size(cb::CircularArrayBuffer{T,N}, i::Integer) where {T,N} = i == N ? cb.nf
 Base.size(cb::CircularArrayBuffer{T,N}) where {T,N} = ntuple(i -> size(cb, i), N)
 Base.getindex(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N} = getindex(cb.buffer, _buffer_index(cb, i))
 Base.getindex(cb::CircularArrayBuffer{T,N}, I...) where {T,N} = getindex(cb.buffer, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
+
+# !!!
+# strange, but we need this function to show `CircularVectorBuffer` correctly
+# `Base.print_array` will try to use `isassigned(cb, i, j)` to print elements
+# And, `X::AbstractVector[2, 1]` is valid !!!
+# without this line
+# ```julia
+# julia> cb = CircularArrayBuffer([1., 2.])
+# CircularVectorBuffer(::Vector{Float64}) with eltype Float64:
+#  1.0
+#  2.0
+
+# julia> push!(cb, 3)
+# CircularVectorBuffer(::Vector{Float64}) with eltype Float64:
+#  #undef
+#  #undef
+# ```
+Base.getindex(cb::CircularVectorBuffer, i, j) = getindex(cb.buffer, _buffer_frame(cb, i), j)
+
 Base.setindex!(cb::CircularArrayBuffer{T,N}, v, i::Int) where {T,N} = setindex!(cb.buffer, v, _buffer_index(cb, i))
 Base.setindex!(cb::CircularArrayBuffer{T,N}, v, I...) where {T,N} = setindex!(cb.buffer, v, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
 
@@ -92,11 +111,7 @@ function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     end
     if N == 1
         i = _buffer_frame(cb, cb.nframes)
-        if ndims(data) == 0
-            cb.buffer[i:i] .= data[]
-        else
-            cb.buffer[i:i] .= data
-        end
+        cb.buffer[i:i] .= Ref(data)
     else
         cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
     end

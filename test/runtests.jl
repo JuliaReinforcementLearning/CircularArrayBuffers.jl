@@ -16,6 +16,12 @@ CUDA.allowscalar(false)
         @test b[1] == 0
     end
 
+    @testset "1D Symbol" begin
+        b = CircularArrayBuffer([:a, :b])
+        push!(b, :c)
+        @test b == [:b, :c]
+    end
+
     @testset "1D Int" begin
         b = CircularArrayBuffer{Int}(3)
 

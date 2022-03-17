@@ -111,7 +111,7 @@ function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     end
     if N == 1
         i = _buffer_frame(cb, cb.nframes)
-        cb.buffer[i:i] .= data
+        cb.buffer[i:i] .= Ref(data)
     else
         cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
     end

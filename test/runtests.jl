@@ -11,9 +11,15 @@ CUDA.allowscalar(false)
     # https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl/issues/551
     @testset "1D with 0d data" begin
         b = CircularArrayBuffer{Int}(3)
-        push!(b, zeros(Int, ()))
+        append!(b, zeros(Int, ()))  # !!! not push!
         @test length(b) == 1
         @test b[1] == 0
+    end
+
+    @testset "1D vector" begin
+        b = CircularArrayBuffer([[1], [2, 3]])
+        push!(b, [4, 5, 6])
+        @test b == [[2, 3], [4, 5, 6]]
     end
 
     @testset "1D Symbol" begin
@@ -195,7 +201,7 @@ if CUDA.functional()
         # https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl/issues/551
         @testset "1D with 0d data" begin
             b = adapt(CuArray, CircularArrayBuffer{Int}(3))
-            CUDA.@allowscalar push!(b, CUDA.zeros(Int, ()))
+            append!(b, CUDA.zeros(Int, ()))  # !!! not push!
             @test length(b) == 1
             @test CUDA.@allowscalar b[1] == 0
         end

@@ -1,7 +1,7 @@
 name = "CircularArrayBuffers"
 uuid = "9de3a189-e0c0-4e15-ba3b-b14b9fb0aec1"
 authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
-version = "0.1.8"
+version = "0.1.9"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"

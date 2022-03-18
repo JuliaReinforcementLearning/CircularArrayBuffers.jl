@@ -97,6 +97,7 @@ end
 end
 
 _buffer_frame(cb::CircularArrayBuffer, I::AbstractArray{<:Integer}) = map(i -> _buffer_frame(cb, i), I)
+_buffer_frame(cb::CircularArrayBuffer, ::Colon) = _buffer_frame(cb, axes(cb)[end])
 
 function Base.empty!(cb::CircularArrayBuffer)
     cb.nframes = 0

@@ -63,6 +63,9 @@ CUDA.allowscalar(false)
         @test b[end] == 5
         @test b[1:end] == [3, 4, 5]
 
+        # https://github.com/JuliaReinforcementLearning/CircularArrayBuffers.jl/issues/14
+        @test b[:] == [3, 4, 5]
+
         empty!(b)
         @test isfull(b) == false
         @test isempty(b) == true
@@ -146,6 +149,9 @@ CUDA.allowscalar(false)
         @test b[:, :, end] == 5 * A
 
         @test b == reshape([c for x in 3:5 for c in x * A], 2, 2, 3)
+
+        # https://github.com/JuliaReinforcementLearning/CircularArrayBuffers.jl/issues/14
+        @test b[:, :, :] == reshape([c for x in 3:5 for c in x * A], 2, 2, 3)
 
         push!(b, 6 * ones(Float32, 2, 2))
         push!(b, 7 * ones(Int, 2, 2))

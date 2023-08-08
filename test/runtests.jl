@@ -129,6 +129,8 @@ CUDA.allowscalar(false)
             push!(b, x * A)
         end
 
+        @test sum(b, dims=3) == fill(6.0, 2, 2, 1)
+
         @test capacity(b) == 3
         @test isfull(b) == true
         @test length(b) == 2 * 2 * 3
@@ -176,6 +178,7 @@ CUDA.allowscalar(false)
         for i in 1:5
             push!(b, fill(i, 2))
         end
+        @test sum(b, dims=2) == [12;12;;]
         empty!(b)
         append!(b, 1:4)
         @test b == [

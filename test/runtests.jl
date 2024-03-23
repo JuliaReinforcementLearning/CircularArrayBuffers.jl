@@ -16,6 +16,13 @@ CUDA.allowscalar(false)
         @test b[1] == 0
     end
 
+    # https://github.com/JuliaReinforcementLearning/CircularArrayBuffers.jl/issues/20
+    @testset "bound check with view" begin
+        b = CircularArrayBuffer([1 2 3; 4 5 6])
+        @test_throws BoundsError @view b[:, 4]
+        @test_throws BoundsError @view b[:, 9]
+    end
+
     @testset "1D vector" begin
         b = CircularArrayBuffer([[1], [2, 3]])
         push!(b, [4, 5, 6])

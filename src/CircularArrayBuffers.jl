@@ -69,8 +69,8 @@ Base.getindex(cb::CircularVectorBuffer, i, j) = getindex(cb.buffer, _buffer_fram
 Base.setindex!(cb::CircularArrayBuffer{T,N}, v, i::Int) where {T,N} = setindex!(cb.buffer, v, _buffer_index(cb, i))
 Base.setindex!(cb::CircularArrayBuffer{T,N}, v, I...) where {T,N} = setindex!(cb.buffer, v, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
 
-Base.view(cb::CircularArrayBuffer, i::Int) = view(cb.buffer, _buffer_index(cb, i))
-Base.view(cb::CircularArrayBuffer, I...) = view(cb.buffer, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
+Base.view(cb::CircularArrayBuffer, i::Int) = (@boundscheck checkbounds(cb, i); view(cb.buffer, _buffer_index(cb, i)))
+Base.view(cb::CircularArrayBuffer, I...) = (@boundscheck checkbounds(cb, I...); view(cb.buffer, Base.front(I)..., _buffer_frame(cb, Base.last(I))))
 
 capacity(cb::CircularArrayBuffer{T,N}) where {T,N} = size(cb.buffer, N)
 isfull(cb::CircularArrayBuffer) = cb.nframes == capacity(cb)

@@ -23,6 +23,15 @@ CUDA.allowscalar(false)
         @test_throws BoundsError @view b[:, 9]
     end
 
+    @testset "Bounds error for zero-length buffer" begin
+        b = CircularVectorBuffer{Bool}(10)
+        @test_throws BoundsError b[end]
+        for i in 1:5
+            push!(b, true)
+        end
+        @test b[end] == true
+    end
+    
     @testset "1D vector" begin
         b = CircularArrayBuffer([[1], [2, 3]])
         push!(b, [4, 5, 6])

@@ -108,7 +108,7 @@ end
 
 Here `i` is assumed to be the last dimension of `cb`. Each `frame` means a slice of the last dimension. Since we use *circular frames* (the `data` buffer) underlying, this function transforms the logical `i`-th frame to the real frame of the internal buffer.
 """
-@inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
+@inline function _buffer_frame(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N}
     n = capacity(cb)
     idx = cb.first + i - 1
     return wrap_index(idx, n)

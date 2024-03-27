@@ -122,7 +122,7 @@ function Base.empty!(cb::CircularArrayBuffer)
     cb
 end
 
-function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
+function Base.push!(cb::CircularArrayBuffer{T,N}, data::D) where {T,N,D}
     if isfull(cb)
         cb.first = (cb.first == capacity(cb) ? 1 : cb.first + 1)
     else
@@ -137,7 +137,7 @@ function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     cb
 end
 
-function Base.append!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
+function Base.append!(cb::CircularArrayBuffer{T,N}, data::D) where {T,N,D}
     d, r = divrem(length(data), cb.step_size)
     @assert r == 0
     if length(data) >= length(cb.buffer)

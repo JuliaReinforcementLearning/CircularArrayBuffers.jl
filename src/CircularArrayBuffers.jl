@@ -98,7 +98,7 @@ function wrap_index(idx::Int, n::Int)
     elseif idx <= 2n
         return idx - n
     else
-        @warn "oops! idx $(idx) > 2n $(2n)"
+        @warn "oops! idx " * idx * " > 2n " * 2n
         return idx - n
     end
 end

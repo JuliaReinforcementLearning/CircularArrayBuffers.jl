@@ -137,13 +137,14 @@ function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     return cb
 end
 
-function Base.push!(cb::CircularArrayBuffer{T,1}, data) where {T}
+function Base.push!(cb::CircularVectorBuffer{T}, data) where {T}
     _update_first_and_nframes!(cb)
     i = _buffer_frame(cb, cb.nframes)
     cb.buffer[i:i] .= Ref(data)
+    return cb
 end
 
-function Base.append!(cb::CircularArrayBuffer{T,N}, data::D) where {T,N,D}
+function Base.append!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
     d, r = divrem(length(data), cb.step_size)
     @assert r == 0
     if length(data) >= length(cb.buffer)
@@ -185,7 +186,7 @@ function Base.pop!(cb::CircularArrayBuffer{T,N}) where {T,N}
     else
         res = @views cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)]
         cb.nframes -= 1
-        res
+        return res
     end
 end
 
@@ -199,7 +200,7 @@ function Base.popfirst!(cb::CircularArrayBuffer{T,N}) where {T,N}
         if cb.first > capacity(cb)
             cb.first = 1
         end
-        res
+        return res
     end
 end
 

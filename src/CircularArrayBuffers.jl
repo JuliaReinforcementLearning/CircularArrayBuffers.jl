@@ -92,7 +92,7 @@ end
 
 Return the index of the `idx`-th element in the buffer, if index is one past the size, return 1, else error.
 """
-function wrap_index(idx, n)
+function wrap_index(idx::Int, n::Int)
     if idx <= n
         return idx
     elseif idx <= 2n

@@ -124,7 +124,7 @@ function Base.empty!(cb::CircularArrayBuffer)
 end
 
 function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
-    if cb.nframes == capacity(cb)
+    if isfull(cb)
         cb.first = (cb.first == capacity(cb) ? 1 : cb.first + 1)
     else
         cb.nframes += 1

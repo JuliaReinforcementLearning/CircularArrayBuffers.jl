@@ -45,7 +45,7 @@ Base.IndexStyle(::CircularArrayBuffer) = IndexLinear()
 
 Base.size(cb::CircularArrayBuffer{T,N}, i::Integer) where {T,N} = i == N ? cb.nframes : size(cb.buffer, i)
 Base.size(cb::CircularArrayBuffer{T,N}) where {T,N} = ntuple(i -> size(cb, i), N)
-Base.getindex(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N} = getindex(cb.buffer, _buffer_index(cb, i))
+Base.getindex(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N} = (@boundscheck checkbounds(cb, i); getindex(cb.buffer, _buffer_index(cb, i)))
 Base.getindex(cb::CircularArrayBuffer{T,N}, I...) where {T,N} = getindex(cb.buffer, Base.front(I)..., _buffer_frame(cb, Base.last(I)))
 
 # !!!

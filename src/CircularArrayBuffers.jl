@@ -98,7 +98,7 @@ function wrap_index(idx::Int, n::Int)
     elseif idx <= 2n
         return idx - n
     else
-        return -1
+        return -1 # NOTE: This should never happen, due to @boundscheck
     end
 end
 

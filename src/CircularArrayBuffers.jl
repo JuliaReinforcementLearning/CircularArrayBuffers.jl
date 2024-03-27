@@ -79,7 +79,7 @@ Base.isempty(cb::CircularArrayBuffer) = cb.nframes == 0
 """
     _buffer_index(cb::CircularArrayBuffer, i::Int)
 
-    Return the index of the `i`-th element in the buffer.
+Return the index of the `i`-th element in the buffer. Note the `i` is assumed to be the linear indexing of `cb`. 
 """
 @inline function _buffer_index(cb::CircularArrayBuffer, i::Int)
     idx = (cb.first - 1) * cb.step_size + i
@@ -90,7 +90,7 @@ end
 """
     wrap_index(idx, n)
 
-    Return the index of the `idx`-th element in the buffer, if index is one past the size, return 1, else error.
+Return the index of the `idx`-th element in the buffer, if index is one past the size, return 1, else error.
 """
 function wrap_index(idx, n)
     if idx <= n
@@ -98,7 +98,7 @@ function wrap_index(idx, n)
     elseif idx <= 2n
         return idx - n
     else
-        @info "oops! idx $(idx) > 2n $(2n)"
+        @warn "oops! idx $(idx) > 2n $(2n)"
         return idx - n
     end
 end
@@ -106,7 +106,7 @@ end
 """
     _buffer_frame(cb::CircularArrayBuffer, i::Int)
 
-    Return the index of the `i`-th frame in the buffer.
+Here `i` is assumed to be the last dimension of `cb`. Each `frame` means a slice of the last dimension. Since we use *circular frames* (the `data` buffer) underlying, this function transforms the logical `i`-th frame to the real frame of the internal buffer.
 """
 @inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
     n = capacity(cb)

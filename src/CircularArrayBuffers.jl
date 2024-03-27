@@ -122,19 +122,25 @@ function Base.empty!(cb::CircularArrayBuffer)
     cb
 end
 
-function Base.push!(cb::CircularArrayBuffer{T,N}, data::D) where {T,N,D}
+function _update_first_and_nframes!(cb)
     if isfull(cb)
         cb.first = (cb.first == capacity(cb) ? 1 : cb.first + 1)
     else
         cb.nframes += 1
     end
-    if N == 1
-        i = _buffer_frame(cb, cb.nframes)
-        cb.buffer[i:i] .= Ref(data)
-    else
-        cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
-    end
-    cb
+    return cb
+end
+
+function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
+    _update_first_and_nframes!(cb)
+    cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
+    return cb
+end
+
+function Base.push!(cb::CircularArrayBuffer{T,1}, data) where {T}
+    _update_first_and_nframes!(cb)
+    i = _buffer_frame(cb, cb.nframes)
+    cb.buffer[i:i] .= Ref(data)
 end
 
 function Base.append!(cb::CircularArrayBuffer{T,N}, data::D) where {T,N,D}

@@ -231,7 +231,7 @@ if CUDA.functional()
             @test isempty(b) == true
             @test length(b) == 0
             @test size(b) == (0,)
-            # element must has the exact same length with the element of buffer
+            # element must have the exact same length with the element of buffer
             @test_throws Exception push!(b, [1, 2])
 
             for x in 1:3

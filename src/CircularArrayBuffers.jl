@@ -79,7 +79,7 @@ Base.isempty(cb::CircularArrayBuffer) = cb.nframes == 0
 """
     _buffer_index(cb::CircularArrayBuffer, i::Int)
 
-    Return the index of the `i`-th element in the buffer.
+Return the index of the `i`-th element in the buffer. Note the `i` is assumed to be the linear indexing of `cb`. 
 """
 @inline function _buffer_index(cb::CircularArrayBuffer, i::Int)
     idx = (cb.first - 1) * cb.step_size + i
@@ -90,25 +90,24 @@ end
 """
     wrap_index(idx, n)
 
-    Return the index of the `idx`-th element in the buffer, if index is one past the size, return 1, else error.
+Return the index of the `idx`-th element in the buffer, if index is one past the size, return 1, else error.
 """
-function wrap_index(idx, n)
+function wrap_index(idx::Int, n::Int)
     if idx <= n
         return idx
     elseif idx <= 2n
         return idx - n
     else
-        @info "oops! idx $(idx) > 2n $(2n)"
-        return idx - n
+        return -1 # NOTE: This should never happen, due to @boundscheck
     end
 end
 
 """
     _buffer_frame(cb::CircularArrayBuffer, i::Int)
 
-    Return the index of the `i`-th frame in the buffer.
+Here `i` is assumed to be the last dimension of `cb`. Each `frame` means a slice of the last dimension. Since we use *circular frames* (the `data` buffer) underlying, this function transforms the logical `i`-th frame to the real frame of the internal buffer.
 """
-@inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
+@inline function _buffer_frame(cb::CircularArrayBuffer{T,N}, i::Int) where {T,N}
     n = capacity(cb)
     idx = cb.first + i - 1
     return wrap_index(idx, n)
@@ -123,19 +122,26 @@ function Base.empty!(cb::CircularArrayBuffer)
     cb
 end
 
-function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
-    if cb.nframes == capacity(cb)
+function _update_first_and_nframes!(cb)
+    if isfull(cb)
         cb.first = (cb.first == capacity(cb) ? 1 : cb.first + 1)
     else
         cb.nframes += 1
     end
-    if N == 1
-        i = _buffer_frame(cb, cb.nframes)
-        cb.buffer[i:i] .= Ref(data)
-    else
-        cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
-    end
-    cb
+    return cb
+end
+
+function Base.push!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
+    _update_first_and_nframes!(cb)
+    cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)] .= data
+    return cb
+end
+
+function Base.push!(cb::CircularVectorBuffer{T}, data) where {T}
+    _update_first_and_nframes!(cb)
+    i = _buffer_frame(cb, cb.nframes)
+    cb.buffer[i:i] .= Ref(data)
+    return cb
 end
 
 function Base.append!(cb::CircularArrayBuffer{T,N}, data) where {T,N}
@@ -180,7 +186,7 @@ function Base.pop!(cb::CircularArrayBuffer{T,N}) where {T,N}
     else
         res = @views cb.buffer[ntuple(_ -> (:), N - 1)..., _buffer_frame(cb, cb.nframes)]
         cb.nframes -= 1
-        res
+        return res
     end
 end
 
@@ -194,7 +200,7 @@ function Base.popfirst!(cb::CircularArrayBuffer{T,N}) where {T,N}
         if cb.first > capacity(cb)
             cb.first = 1
         end
-        res
+        return res
     end
 end
 

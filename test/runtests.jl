@@ -23,13 +23,21 @@ CUDA.allowscalar(false)
         @test_throws BoundsError @view b[:, 9]
     end
 
-    @testset "Bounds error for zero-length buffer" begin
+    @testset "Bounds error for zero-length / underfilled buffer" begin
         b = CircularVectorBuffer{Bool}(10)
+        @test_throws BoundsError b[1]
         @test_throws BoundsError b[end]
-        for i in 1:5
+
+        push!(b, true)
+        @test b[1] == true
+        @test b[end] == true
+        @test_throws BoundsError b[2]
+        for i in 1:15
             push!(b, true)
         end
         @test b[end] == true
+        @test b[10] == true
+        @test_throws BoundsError b[15]
     end
     
     @testset "1D vector" begin
